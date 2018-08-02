@@ -1,5 +1,5 @@
 <?php
-/*  Copyright 2013  Jesús Ángel del Pozo Domínguez  (email : jesusangel.delpozo@gmail.com)
+/*  Copyright 2018  Prathibha Sathyajth (email : prathibha_w@epiclanka.net)
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License, version 3, as 
@@ -25,7 +25,7 @@
  * License: GPL3
  *
  * Text Domain: wc_epic_payment_gateway
- * Domain Path: /languages
+ *
  *
  */
 
