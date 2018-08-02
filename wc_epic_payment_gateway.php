@@ -395,7 +395,19 @@ function init_wc_myepic_payment_gateway()
                 'terminalId' => $this->terminalId,
                 'merchantId' => $this->merchantId,
                 'amount' => $order->order_total,
-                'orderid' => $order->id
+                'orderid' => $order->id,
+                'currencyCode' => $this->currencyCode,
+                'dateofregistry' => $this->dateofregistry,
+                'refno' => "123",
+                'merchantType' => "1234",
+                'txnRefNo' => "88",
+                'emerchantId' => "B035BA39CCFD9E660C0033597C869237",
+                'signature' => $this->merchantId,
+                'key' => "",
+                'byteSignedDataString' => "A598283A30FAA41786CD1EE7981B7D69DF801572B78B4C30A9EA87406AC26908E2ACBF0D59E720D9A96DD3993C4FAEA0D5A064A36C17971BF2772BC7A501D69BD896F17A25F005931E1D7E782E25BBC6346C77D9615A865CFE50B81689570169AE2346D4E666232309022C94754F55A88C58E5C58948969FDAE0867EF9B99FAE",
+                'url' => "http://localhost:7001/EPIC_IPG/IPGMerchantAddOnServlet",
+                'radio' => $this->cardtype
+
 
             );
 
