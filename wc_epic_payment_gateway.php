@@ -75,6 +75,8 @@ function init_wc_myepic_payment_gateway()
         return;
     }
 
+    include_once('fileupload.php');
+
     /**
      * Epic Standard Payment Gateway
      *
@@ -327,6 +329,13 @@ function init_wc_myepic_payment_gateway()
                     'description' => __('Please enter your epic currency identifier; this is needed in order to take payment', 'woo_epicpay'),
                     'desc_tip' => true,
                     'default' => '144'
+                ),
+                // file upload
+                'fileToUpload' => array(
+                    'title' => __('Certificate File', 'woo_epicpay'),
+                    'type' => 'file',
+                    'description' => __('Upload your certificate file and jks file that provides your admin portal.', 'woo_epicpay'),
+                    'desc_tip' => true
                 ),
                 'testing' => array(
                     'title' => __('Gateway Testing', 'wc_redsys_payment_gateway'),
