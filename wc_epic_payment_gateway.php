@@ -331,11 +331,12 @@ function init_wc_myepic_payment_gateway()
                     'default' => '144'
                 ),
                 // file upload
-                'fileToUpload' => array(
+                'certfile' => array(
                     'title' => __('Certificate File', 'woo_epicpay'),
                     'type' => 'file',
-                    'description' => __('Upload your certificate file and jks file that provides your admin portal.', 'woo_epicpay'),
-                    'desc_tip' => true
+                    'custom_attributes'=>array('accept'=>'.cer'),
+                    'description' => __('Upload your certificate file that provides your service provider. (.cer file)', 'woo_epicpay'),
+                    'desc_tip' => false
                 ),
                 'testing' => array(
                     'title' => __('Gateway Testing', 'wc_redsys_payment_gateway'),
@@ -397,6 +398,23 @@ function init_wc_myepic_payment_gateway()
                 $products = __('Online order', 'wc_epic_payment_gateway');
             }
 
+
+            // ================ SymmetricKey encryption ===================
+
+
+
+
+
+
+
+            //================= DigitallySign process ======================
+
+
+
+
+
+
+            
             $epic_args = array(
 //						'Ds_SignatureVersion' => 'HMAC_SHA256_V1',
 //						'Ds_MerchantParameters' => $tpv_data_encoded,

@@ -7,18 +7,15 @@
  */
 
 //$target_dir = "uploads/";
-$target_dir = "../wp-content/plugins/epic-ipg/keystore/";
+$target_dir = "../wp-content/plugins/".basename(__DIR__)."/keystore/";
 
-//$mer = new WC_epic_Payment_Gateway;
-//$fff = $mer->merchant;
 
-//get merchant ID
-//$mer = $_POST['woocommerce_myepic_merchantId'];
 $mer = $_POST['woocommerce_myepic_merchantId'];
+
 //check is file button click or select a file to file upload button
 
-$target_file = $target_dir . basename($_FILES["woocommerce_myepic_fileToUpload"]["name"]);
-$target_file_name = pathinfo($_FILES['woocommerce_myepic_fileToUpload']['name'], PATHINFO_FILENAME);
+$target_file = $target_dir . basename($_FILES["woocommerce_myepic_certfile"]["name"]);
+$target_file_name = pathinfo($_FILES['woocommerce_myepic_certfile']['name'], PATHINFO_FILENAME);
 
 $cerfile = $target_dir . basename($mer . ".cer");
 $jksfile = $target_dir . basename($mer . ".jks");
@@ -73,7 +70,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $uploadOk = 0;
             }
             if($target_file_name != $mer && $uploadOk !=2 && $imageFileType == "cer" ){
-                fileupload_error_notice("Uploaded file not mactched to merchant id");
+                $uploadmessage .= "Uploaded file not mactched to merchant id.";
+//                fileupload_error_notice("Uploaded file not mactched to merchant id");
                 $uploadOk = 0;
             }
 
@@ -83,8 +81,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             } else if ($uploadOk == 2) {
                 $uploadOk = 22;
             } else if ($uploadOk == 1) {
-                if (move_uploaded_file($_FILES["woocommerce_myepic_fileToUpload"]["tmp_name"], $target_file)) {
-                    fileupload_success_notice("The file <strong>" . basename($_FILES["woocommerce_myepic_fileToUpload"]["name"]) . "</strong> has been uploaded.");
+                if (move_uploaded_file($_FILES["woocommerce_myepic_certfile"]["tmp_name"], $target_file)) {
+                    fileupload_success_notice("The file <strong>" . basename($_FILES["woocommerce_myepic_certfile"]["name"]) . "</strong> has been uploaded.");
                 } else {
                     fileupload_error_notice('Sorry, there was an error uploading your file.');
                 }
