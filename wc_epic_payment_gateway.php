@@ -398,6 +398,15 @@ function init_wc_myepic_payment_gateway()
                 $products = __('Online order', 'wc_epic_payment_gateway');
             }
 
+            // ================ Cer to pem ==================
+//            $certificateCAcer = '/certificate.cer';
+//            $certificateCAcerContent = file_get_contents($certificateCAcer);
+//            /* Convert .cer to .pem, cURL uses .pem */
+//            $certificateCApemContent =  '-----BEGIN CERTIFICATE-----'.PHP_EOL
+//                .chunk_split(base64_encode($certificateCAcerContent), 64, PHP_EOL)
+//                .'-----END CERTIFICATE-----'.PHP_EOL;
+//            $certificateCApem = $certificateCAcer.'.pem';
+//            file_put_contents($certificateCApem, $certificateCApemContent);
 
             // ================ SymmetricKey encryption ===================
 
@@ -414,7 +423,7 @@ function init_wc_myepic_payment_gateway()
 
 
 
-            
+
             $epic_args = array(
 //						'Ds_SignatureVersion' => 'HMAC_SHA256_V1',
 //						'Ds_MerchantParameters' => $tpv_data_encoded,
