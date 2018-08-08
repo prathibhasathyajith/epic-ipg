@@ -400,10 +400,11 @@ function init_wc_myepic_payment_gateway()
                 $products = __('Online order', 'wc_epic_payment_gateway');
             }
 
-            // ================ SymmetricKey encryption ===================
+            // ================  Certificate certify process begin ===================
 
             // merchant id
             $_mid = $this->merchantId;
+            // pem file url
             $_url = $this->certurl;
             //get private key
             $pvt_key = getPVTKey(getUrlFromContext($_url,$_mid));
@@ -423,14 +424,11 @@ function init_wc_myepic_payment_gateway()
             var_dump("Encrypted Val    --> " . $encrypted_val);
             var_dump("Byte Signed Data --> " . $byteSignedData);
 
-
-            //================= DigitallySign process ======================
+            //================= Certificate certify process end ======================
 
 
             $epic_args = array(
-//						'Ds_SignatureVersion' => 'HMAC_SHA256_V1',
-//						'Ds_MerchantParameters' => $tpv_data_encoded,
-//						'Ds_Signature' => $signature,
+
                 'terminalId' => $this->terminalId,
                 'merchantId' => $this->merchantId,
                 'amount' => $order->order_total,
@@ -582,7 +580,7 @@ function init_wc_myepic_payment_gateway()
             $order = new WC_Order($order_id);
 
             if (version_compare(WOOCOMMERCE_VERSION, '2.1', '<')) {
-                $redirect_url = add_query_arg('order', $order->id, add_query_arg('key', $order->order_key, get_permalink(woocommerce_get_page_id('pay'))));
+                $redirect_url = add_query_arg('order',$order_id, add_query_arg('key', $order->order_key, get_permalink(woocommerce_get_page_id('pay'))));
             } else {
                 $redirect_url = $order->get_checkout_payment_url(true);
             }

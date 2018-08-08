@@ -127,7 +127,6 @@ class ASNValue
  */
 function getPVTKey($url)
 {
-    var_dump($url);
     $fp = fopen($url, "r");
     $priv_key = fread($fp, 8192);
     fclose($fp);
