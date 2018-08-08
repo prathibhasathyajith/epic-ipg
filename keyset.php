@@ -120,61 +120,68 @@ class ASNValue
     }
 }
 
-////
-//$certificateCAcer = 'D:\keys\000000001000066.cer';
-//$certificateCAcerContent = file_get_contents($certificateCAcer);
-///* Convert .cer to .pem, cURL uses .pem */
-//$certificateCApemContent = '-----BEGIN RSA PRIVATE KEY-----' . PHP_EOL
-//    . chunk_split(base64_encode($certificateCAcerContent), 64, PHP_EOL)
-//    . '-----END RSA PRIVATE KEY-----' . PHP_EOL;
-//$certificateCApem = $certificateCAcer . '.pem';
-//file_put_contents($certificateCApem, $certificateCApemContent);
+/**
+ * @param $url
+ * @return bool|string
+ * get private key from pem file
+ */
+function getPVTKey($url)
+{
+    $fp = fopen($url, "r");
+    $priv_key = fread($fp, 8192);
+    fclose($fp);
+    return $priv_key;
+}
 
+/**
+ * @param $pvt_key
+ * @return bool|string
+ * @throws Exception
+ * generate key for SymmetricKey Encryption (Shared Key)
+ */
+function generateKey($pvt_key)
+{
+    try {
+        $PrivateDER = PemToDer($pvt_key);
+        $body = new ASNValue;
+        $body->Decode($PrivateDER);
+        $bodyItems = $body->GetSequence();
+        $Modulus = $bodyItems[1]->GetIntBuffer();
 
-$fp = fopen('D:\keys\000000001000066.pem', "r");
-//$fp = fopen('C:\LOGS\MERCHANT_ADDON\keys\222222222221002.pem', "r");
-$priv_key = fread($fp, 8192);
-fclose($fp);
+        $bin2hex = bin2hex($Modulus);
+        $hexdec = (String)hexdec($bin2hex);
 
-// $passphrase is required if your key is encoded (suggested)
-//$res = openssl_get_privatekey($priv_key,"password");
-$PrivateDER = PemToDer($priv_key);
+        $new = str_replace(".", "", $hexdec);
+        $key = substr($new, 0, 8);
+    } catch (Exception $s) {
+        throw $s;
+    }
+    return $key;
+}
 
-//var_dump($PrivateDER);
-
-$body = new ASNValue;
-$body->Decode($PrivateDER);
-$bodyItems = $body->GetSequence();
-$Modulus = $bodyItems[1]->GetIntBuffer();
-
-var_dump($Modulus);
-
-$bin2hex = bin2hex($Modulus);
-$hexdec = (String)hexdec($bin2hex);
-
-var_dump($bin2hex);
-var_dump($hexdec);
-
-
-
-$new = str_replace(".", "", $hexdec);
-$key = substr($new, 0, 8);
-$keys = $key;
-
-$source = "000000001000066";
-
+/**
+ * @param $input
+ * @param $key
+ * @return string
+ * encrypted mid
+ * @throws Exception
+ */
 function encrypt($input, $key)
 {
-    $size = mcrypt_get_block_size(MCRYPT_DES, MCRYPT_MODE_ECB);
-    $input = pkcs5_pad($input, $size);
-    $td = mcrypt_module_open(MCRYPT_DES, '', MCRYPT_MODE_ECB, '');
-    $iv = mcrypt_create_iv(mcrypt_enc_get_iv_size($td), MCRYPT_RAND);
-    mcrypt_generic_init($td, $key, $iv);
-    $data = mcrypt_generic($td, $input);
-    mcrypt_generic_deinit($td);
-    mcrypt_module_close($td);
-    //  $data = base64_encode($data);
-    return bin2hex($data);
+    try {
+        $size = mcrypt_get_block_size(MCRYPT_DES, MCRYPT_MODE_ECB);
+        $input = pkcs5_pad($input, $size);
+        $td = mcrypt_module_open(MCRYPT_DES, '', MCRYPT_MODE_ECB, '');
+        $iv = mcrypt_create_iv(mcrypt_enc_get_iv_size($td), MCRYPT_RAND);
+        mcrypt_generic_init($td, $key, $iv);
+        $data = mcrypt_generic($td, $input);
+        mcrypt_generic_deinit($td);
+        mcrypt_module_close($td);
+        //  $data = base64_encode($data);
+    }catch (Exception $e){
+        throw $e;
+    }
+    return strtoupper (bin2hex($data));
 }
 
 function pkcs5_pad($text, $blocksize)
@@ -183,26 +190,58 @@ function pkcs5_pad($text, $blocksize)
     return $text . str_repeat(chr($pad), $pad);
 }
 
-
-$encrypted_val = encrypt($source, $key);
-var_dump($key);
-/////////////////////////////////////////////////////////////////////  */
-
-
-function digitalsign($myData)
+/**
+ * @param $myData
+ * @param $pvt_key
+ * @return string
+ * digitally sign
+ * @throws Exception
+ */
+function digitalsign($dsdata, $pvt_key)
 {
-    $data = $myData;
-    $fp = fopen('D:\keys\000000001000066.pem', "r");
-    $priv_key = fread($fp, 8192);
-    fclose($fp);
+    try {
+        $data = $dsdata;
+        $fp = fopen('D:\keys\000000001000066.pem', "r");
+        $priv_key = fread($fp, 8192);
+        fclose($fp);
 
-    $private_key_res = openssl_get_privatekey($priv_key, "password");
+        $private_key_res = openssl_get_privatekey($pvt_key, "password");
 
-    $SignedData = openssl_sign($data, $signature, $private_key_res, "md5WithRSAEncryption");
+        $SignedData = openssl_sign($data, $signature, $private_key_res, "md5WithRSAEncryption");
 
-    return bin2hex($signature);
+    }catch (Exception $e){
+        throw $e;
+    }
+    return strtoupper (bin2hex($signature));
 }
 
-$myData = $source;
-$byteSignedData = digitalsign($myData);
-var_dump($byteSignedData);
+/**
+ * @param $MID
+ * @return string
+ * get pem file URL
+ */
+function getURL($MID)
+{
+    $target_dir = "../wp-content/plugins/" . basename(__DIR__) . "/keystore/" . $MID . ".pem";
+    return $target_dir;
+}
+
+// merchant id
+$_merchantID = "000000001000066";
+//get private key
+$pvt_key = getPVTKey(getURL($_merchantID));
+//get shared key for Symmetric key encryption
+$key = generateKey($pvt_key);
+//encryption source
+$source = $_merchantID;
+// encrypted mid
+$encrypted_val = encrypt($source, $key);
+// digitally signed data --> mid
+$dsdata = $source;
+// byte string
+$byteSignedData = digitalsign($dsdata, $pvt_key);
+
+var_dump("Key              --> ".$key);
+var_dump("Source           --> ".$source);
+var_dump("Encrypted Val    --> ".$encrypted_val);
+var_dump("Byte Signed Data --> ".$byteSignedData);
