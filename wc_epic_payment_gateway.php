@@ -106,6 +106,7 @@ function init_wc_myepic_payment_gateway()
             // Thank you @oscarestepa for this line
             $this->icon = apply_filters('wc_epic_icon', plugins_url('/assets/images/icons/epic.png', __FILE__));
             $this->ipgicon = apply_filters('wc_epic_icon', plugins_url('/assets/images/icons/ipg.png', __FILE__));
+            $this->certurl = apply_filters('wc_epic_icon', plugins_url('/keystore/', __FILE__));
             $this->has_fields = false;
             $this->method_title = __('Epic Payment Gateway', 'wc_epic_payment_gateway');
             $this->method_description = __('Pay with credit card using Epic IPG', 'wc_epic_payment_gateway');
@@ -335,7 +336,7 @@ function init_wc_myepic_payment_gateway()
                 'certfile' => array(
                     'title' => __('Certificate File', 'woo_epicpay'),
                     'type' => 'file',
-                    'custom_attributes'=>array('accept'=>'.cer'),
+                    'custom_attributes' => array('accept' => '.cer'),
                     'description' => __('Upload your certificate file that provides your service provider. (.cer file)', 'woo_epicpay'),
                     'desc_tip' => false
                 ),
@@ -379,7 +380,7 @@ function init_wc_myepic_payment_gateway()
             $unique_order_id = apply_filters('wc_myepic_merchant_order_encode', $unique_order_id, $order_id);
 
             if ('yes' == $this->debug) {
-                $this->log->add('epic', 'Generating payment form for order #' . $order_id . '. Notify URL: ' );
+                $this->log->add('epic', 'Generating payment form for order #' . $order_id . '. Notify URL: ');
             }
 
             $products = '';
@@ -399,32 +400,30 @@ function init_wc_myepic_payment_gateway()
                 $products = __('Online order', 'wc_epic_payment_gateway');
             }
 
-
-
-            // ================ Cer to pem ==================
-//            $certificateCAcer = '/certificate.cer';
-//            $certificateCAcerContent = file_get_contents($certificateCAcer);
-//            /* Convert .cer to .pem, cURL uses .pem */
-//            $certificateCApemContent =  '-----BEGIN CERTIFICATE-----'.PHP_EOL
-//                .chunk_split(base64_encode($certificateCAcerContent), 64, PHP_EOL)
-//                .'-----END CERTIFICATE-----'.PHP_EOL;
-//            $certificateCApem = $certificateCAcer.'.pem';
-//            file_put_contents($certificateCApem, $certificateCApemContent);
-
             // ================ SymmetricKey encryption ===================
 
+            // merchant id
+            $_merchantID = $this->merchantId;
+            //get private key
+            $pvt_key = getPVTKey(getUrlFromContext($this->certurl,$_merchantID));
+            //get shared key for Symmetric key encryption
+            $key = generateKey($pvt_key);
+            //encryption source
+            $source = $_merchantID;
+            // encrypted mid
+            $encrypted_val = encrypt($source, $key);
+            // digitally signed data --> mid
+            $dsdata = $source;
+            // byte string
+            $byteSignedData = digitalsign($dsdata, $pvt_key);
 
-
-
-
+            var_dump("Key              --> " . $key);
+            var_dump("Source           --> " . $source);
+            var_dump("Encrypted Val    --> " . $encrypted_val);
+            var_dump("Byte Signed Data --> " . $byteSignedData);
 
 
             //================= DigitallySign process ======================
-
-
-
-
-
 
 
             $epic_args = array(
@@ -562,7 +561,7 @@ function init_wc_myepic_payment_gateway()
             } else {
                 return '<form action="' . esc_url($epic_addr) . '" method="post" id="epic_payment_form" target="_top">
 						' . implode('', $epic_fields_array) . '
-						<img src="'.$this->ipgicon.'" width="300" height="auto" alt="Epic logo" style="background: white;padding: 7px;border: 1px solid #ababab"/>
+						<img src="' . $this->ipgicon . '" width="300" height="auto" alt="Epic logo" style="background: white;padding: 7px;border: 1px solid #ababab"/>
 					</form>';
             }
 
@@ -941,7 +940,6 @@ function init_wc_myepic_payment_gateway()
 
     add_filter('woocommerce_payment_gateways', 'add_myepic_gateway');
 }
-
 
 
 /**

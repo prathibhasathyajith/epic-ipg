@@ -127,6 +127,7 @@ class ASNValue
  */
 function getPVTKey($url)
 {
+    var_dump($url);
     $fp = fopen($url, "r");
     $priv_key = fread($fp, 8192);
     fclose($fp);
@@ -197,15 +198,11 @@ function pkcs5_pad($text, $blocksize)
  * digitally sign
  * @throws Exception
  */
-function digitalsign($dsdata, $pvt_key)
+function digitalsign($dsdata, $pvt_key,$mid)
 {
     try {
         $data = $dsdata;
-        $fp = fopen('D:\keys\000000001000066.pem', "r");
-        $priv_key = fread($fp, 8192);
-        fclose($fp);
-
-        $private_key_res = openssl_get_privatekey($pvt_key, "password");
+        $private_key_res = openssl_get_privatekey(getPVTKey(getURL($mid)), "password");
 
         $SignedData = openssl_sign($data, $signature, $private_key_res, "md5WithRSAEncryption");
 
@@ -226,22 +223,14 @@ function getURL($MID)
     return $target_dir;
 }
 
-// merchant id
-$_merchantID = "000000001000066";
-//get private key
-$pvt_key = getPVTKey(getURL($_merchantID));
-//get shared key for Symmetric key encryption
-$key = generateKey($pvt_key);
-//encryption source
-$source = $_merchantID;
-// encrypted mid
-$encrypted_val = encrypt($source, $key);
-// digitally signed data --> mid
-$dsdata = $source;
-// byte string
-$byteSignedData = digitalsign($dsdata, $pvt_key);
+/**
+ * @param $MID
+ * @return string
+ * get pem url method 2
+ */
+function getUrlFromContext($URL,$MID)
+{
+    return $URL.$MID.".pem";
+}
 
-var_dump("Key              --> ".$key);
-var_dump("Source           --> ".$source);
-var_dump("Encrypted Val    --> ".$encrypted_val);
-var_dump("Byte Signed Data --> ".$byteSignedData);
+
