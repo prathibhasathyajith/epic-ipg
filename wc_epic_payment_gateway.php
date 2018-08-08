@@ -76,6 +76,7 @@ function init_wc_myepic_payment_gateway()
     }
 
     include_once('fileupload.php');
+    include_once('keyset.php');
 
     /**
      * Epic Standard Payment Gateway
@@ -397,6 +398,8 @@ function init_wc_myepic_payment_gateway()
             } else {
                 $products = __('Online order', 'wc_epic_payment_gateway');
             }
+
+
 
             // ================ Cer to pem ==================
 //            $certificateCAcer = '/certificate.cer';
