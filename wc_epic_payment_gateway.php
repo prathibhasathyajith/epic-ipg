@@ -403,19 +403,20 @@ function init_wc_myepic_payment_gateway()
             // ================ SymmetricKey encryption ===================
 
             // merchant id
-            $_merchantID = $this->merchantId;
+            $_mid = $this->merchantId;
+            $_url = $this->certurl;
             //get private key
-            $pvt_key = getPVTKey(getUrlFromContext($this->certurl,$_merchantID));
+            $pvt_key = getPVTKey(getUrlFromContext($_url,$_mid));
             //get shared key for Symmetric key encryption
             $key = generateKey($pvt_key);
             //encryption source
-            $source = $_merchantID;
+            $source = $_mid;
             // encrypted mid
             $encrypted_val = encrypt($source, $key);
             // digitally signed data --> mid
             $dsdata = $source;
             // byte string
-            $byteSignedData = digitalsign($dsdata, $pvt_key);
+            $byteSignedData = digitalsign($dsdata, $pvt_key,$_mid,$_url);
 
             var_dump("Key              --> " . $key);
             var_dump("Source           --> " . $source);

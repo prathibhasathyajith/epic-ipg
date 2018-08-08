@@ -198,11 +198,11 @@ function pkcs5_pad($text, $blocksize)
  * digitally sign
  * @throws Exception
  */
-function digitalsign($dsdata, $pvt_key,$mid)
+function digitalsign($dsdata, $pvt_key,$mid,$url)
 {
     try {
         $data = $dsdata;
-        $private_key_res = openssl_get_privatekey(getPVTKey(getURL($mid)), "password");
+        $private_key_res = openssl_get_privatekey(getPVTKey(getUrlFromContext($url,$mid)), "password");
 
         $SignedData = openssl_sign($data, $signature, $private_key_res, "md5WithRSAEncryption");
 
