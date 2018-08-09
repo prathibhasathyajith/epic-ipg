@@ -19,6 +19,7 @@ $target_file_name = pathinfo($_FILES['woocommerce_myepic_certfile']['name'], PAT
 
 $cerfile = $target_dir . basename($mer . ".cer");
 $jksfile = $target_dir . basename($mer . ".jks");
+$pemfile = $target_dir . basename($mer . ".pem");
 
 $uploadOk = 1;
 $fileOK = true;
@@ -64,12 +65,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 //                fileupload_error_notice("File already exists.");
                 $uploadOk = 0;
             } //check file type
-            else if ($imageFileType != "cer" && $imageFileType != "jks") {
+            else if ($imageFileType != "cer" && $imageFileType != "jks" && $imageFileType != "pem") {
                 $uploadmessage .= "Only certificate files (.cer) & JKS files are allowed.";
 //                fileupload_error_notice('Only certificate files (.cer) & JKS files are allowed.');
                 $uploadOk = 0;
             }
-            if($target_file_name != $mer && $uploadOk !=2 && $imageFileType == "cer" ){
+            if($target_file_name != $mer && $uploadOk !=2 && ($imageFileType == "pem" || $imageFileType == "cer" || $imageFileType == "jks") ){
                 $uploadmessage .= "Uploaded file not mactched to merchant id.";
 //                fileupload_error_notice("Uploaded file not mactched to merchant id");
                 $uploadOk = 0;
@@ -89,7 +90,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
         //check file already exists
-        if (!file_exists($cerfile)) {
+        if (!file_exists($pemfile)) {
             fileupload_error_notice("Certificate file not exist.");
         } else {
             fileupload_success_notice("Certificate file exist.");

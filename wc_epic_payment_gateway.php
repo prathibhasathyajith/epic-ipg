@@ -336,8 +336,8 @@ function init_wc_myepic_payment_gateway()
                 'certfile' => array(
                     'title' => __('Certificate File', 'woo_epicpay'),
                     'type' => 'file',
-                    'custom_attributes' => array('accept' => '.cer'),
-                    'description' => __('Upload your certificate file that provides your service provider. (.cer file)', 'woo_epicpay'),
+                    'custom_attributes' => array('accept' => '.pem'),
+                    'description' => __('Upload your certificate file that provides your service provider. (.pem file)', 'woo_epicpay'),
                     'desc_tip' => false
                 ),
                 'testing' => array(
