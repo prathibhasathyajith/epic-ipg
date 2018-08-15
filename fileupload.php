@@ -91,7 +91,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         //check file already exists
         if (!file_exists($pemfile)) {
-            fileupload_error_notice("Certificate file not exist.");
+            fileupload_error_notice("Certificate file does not exist.");
         } else {
             fileupload_success_notice("Certificate file exist.");
         }

@@ -18,7 +18,6 @@ function PemToDer($Pem)
     $result = implode('', $lines);
     //Decode:
     $result = base64_decode($result);
-
     return $result;
 }
 
@@ -131,6 +130,7 @@ function getPVTKey($url)
     $priv_key = fread($fp, 8192);
     fclose($fp);
     return $priv_key;
+
 }
 
 /**
@@ -147,7 +147,6 @@ function generateKey($pvt_key)
         $body->Decode($PrivateDER);
         $bodyItems = $body->GetSequence();
         $Modulus = $bodyItems[1]->GetIntBuffer();
-
         $bin2hex = bin2hex($Modulus);
         $hexdec = (String)hexdec($bin2hex);
 
