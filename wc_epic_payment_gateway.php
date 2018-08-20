@@ -127,8 +127,6 @@ function init_wc_myepic_payment_gateway()
             $this->dateofregistry = $this->settings['dateofregistry'];
             $this->merchantId = $this->settings['merchantId'];
             $this->terminalId = $this->settings['terminalId'];
-            $this->byteSignedDataString = $this->settings['byteSignedDataString'];
-            $this->signature = $this->settings['signature'];
             $this->currencyCode = $this->settings['currencyCode'];
             $this->cardtype = $this->settings['cardtype'];
             $this->debug = $this->settings['debug'];
@@ -293,19 +291,7 @@ function init_wc_myepic_payment_gateway()
                     'description' => __('Given to Merchant by epicpay'),
                     'desc_tip' => true
                 ),
-                'byteSignedDataString' => array(
-                    'title' => __('Byte Signed Data String', 'woo_epicpay'),
-                    'type' => 'text',
-                    'description' => __('Given to Merchant by epicpay'),
-                    'desc_tip' => true
-                ),
-                // Signature
-                'signature' => array(
-                    'title' => __('Signature', 'woo_epicpay'),
-                    'type' => 'text',
-                    'description' => __('Given to Merchant by epicpay'),
-                    'desc_tip' => true
-                ),
+
                 'cardtype' => array(
                     'title' => __('Card Type', 'wc_epic_payment_gateway'),
                     'type' => 'select',
@@ -419,10 +405,10 @@ function init_wc_myepic_payment_gateway()
             // byte string
             $byteSignedData = digitalsign($dsdata, $pvt_key,$_mid,$_url);
 
-            var_dump("Key              --> " . $key);
-            var_dump("Source           --> " . $source);
-            var_dump("Encrypted Val    --> " . $encrypted_val);
-            var_dump("Byte Signed Data --> " . $byteSignedData);
+//            var_dump("Key              --> " . $key);
+//            var_dump("Source           --> " . $source);
+//            var_dump("Encrypted Val    --> " . $encrypted_val);
+//            var_dump("Byte Signed Data --> " . $byteSignedData);
 
             //================= Certificate certify process end ======================
 
@@ -437,18 +423,18 @@ function init_wc_myepic_payment_gateway()
                 //must be convert to the needed format
                 'dateofregistry' => $this->dateofregistry,
                 // implemented generate random number
-                'refno' => "123",
+                'refno' => $order->id,
                 // normal or standard
                 'merchantType' => "1234",
                 // implemented generate random number
-                'txnRefNo' => "88",
+                'txnRefNo' => $order->id,
                 //must be implemented
-                'emerchantId' => "B035BA39CCFD9E660C0033597C869237",
+                'emerchantId' => $encrypted_val,
                 'signature' => $this->merchantId,
                 //must be implemented
                 'key' => "",
                 //must be implemented
-                'byteSignedDataString' => "A598283A30FAA41786CD1EE7981B7D69DF801572B78B4C30A9EA87406AC26908E2ACBF0D59E720D9A96DD3993C4FAEA0D5A064A36C17971BF2772BC7A501D69BD896F17A25F005931E1D7E782E25BBC6346C77D9615A865CFE50B81689570169AE2346D4E666232309022C94754F55A88C58E5C58948969FDAE0867EF9B99FAE",
+                'byteSignedDataString' => $byteSignedData,
                 // can get url select
                 'url' => "http://localhost:7001/EPIC_IPG/IPGMerchantAddOnServlet",
                 //card type
@@ -477,15 +463,13 @@ function init_wc_myepic_payment_gateway()
 
             switch ($this->mode) {
                 case 'T' :
-//						$epic_addr = 'https://sis-t.epic.es:25443/sis/realizarPago/utf-8';
-                    $epic_addr = 'http://localhost:7001/EPIC_IPG/IPGMerchantAddOnServlet';
-
+                    $epic_addr = 'http://192.168.60.73:7001/EPIC_IPG/IPGMerchantAddOnServlet';
                     break;
                 case 'L':
-                    $epic_addr = 'http://localhost:7001/EPIC_IPG/IPGMerchantAddOnServletLIVE';
+                    $epic_addr = 'http://192.168.60.73:7001/EPIC_IPG/IPGMerchantAddOnServlet';
                     break;
                 case 'D':
-                    $epic_addr = 'http://localhost:7001/EPIC_IPG/IPGMerchantAddOnServletLIVE';
+                    $epic_addr = 'http://localhost:7001/EPIC_IPG/IPGMerchantAddOnServlet';
                     break;
                 default:
                     $epic_addr = 'http://localhost:7001/EPIC_IPG/IPGMerchantAddOnServlet';
@@ -512,7 +496,7 @@ function init_wc_myepic_payment_gateway()
             }
 
 //                if ( empty( $this->settings['skip_checkout_form'] ) || $this->settings['skip_checkout_form'] != 'no' ) {
-            if ($this->mode == "T") {
+            if ($this->mode == "T" || $this->mode == "D" ) {
 
                 if (version_compare(WOOCOMMERCE_VERSION, '2.2.3', '<')) {
                     $loader_html = '<img src="' . esc_url(apply_filters('woocommerce_ajax_loader_url', $woocommerce->plugin_url() . '/assets/images/ajax-loader.gif')) . '" alt="' . __('Redirecting&hellip;', 'wc_epic_payment_gateway') . '" style="float: left; margin-right: 10px;" />';
@@ -600,9 +584,7 @@ function init_wc_myepic_payment_gateway()
         function receipt_page($order)
         {
 
-//            echo '<p>' . __('Thank you for your order, please click the button below to pay with Epic.', 'wc_epic_payment_gateway') . '</p>';
-            echo '<p>' . __('Thank you for connecting with epic IPG', 'wc_epic_payment_gateway') . '</p>';
-
+            echo '<p>' . __('Thank you for connecting with Epic-IPG', 'wc_epic_payment_gateway') . '</p>';
             echo $this->generate_epic_form($order);
 
         }
@@ -615,6 +597,8 @@ function init_wc_myepic_payment_gateway()
          */
         function check_notification()
         {
+
+            var_dump("sss");
             global $woocommerce;
 
             if ('yes' == $this->debug) {
@@ -628,6 +612,7 @@ function init_wc_myepic_payment_gateway()
 
                     // Get received values from post data
                     $received_values = (array)stripslashes_deep($_POST);
+                    var_dump($received_values);
 
                     if ('yes' == $this->debug) {
                         $this->log->add('epic', 'Received data: ' . print_r($received_values, true));
