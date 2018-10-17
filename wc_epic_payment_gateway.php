@@ -69,6 +69,7 @@ function wc_myepic_payment_gateway_ignore_notice()
     }
 }
 
+
 function init_wc_myepic_payment_gateway()
 {
     if (!class_exists('WC_Payment_Gateway')) {
@@ -91,7 +92,6 @@ function init_wc_myepic_payment_gateway()
      */
     class WC_MyEpic extends WC_Payment_Gateway
     {
-
         /**
          * Constructor for the gateway.
          *
@@ -246,9 +246,10 @@ function init_wc_myepic_payment_gateway()
                     'type' => 'select',
                     'label' => __('Mode', 'wc_epic_payment_gateway'),
                     'options' => array(
-                        'T' => __('Test', 'wc_epic_payment_gateway'),
-                        'D' => __('Demo', 'wc_epic_payment_gateway'),
-                        'L' => __('Live', 'wc_epic_payment_gateway')
+                        'T' => __('Test-linux', 'wc_epic_payment_gateway'),
+                        'D' => __('Demo-localhost', 'wc_epic_payment_gateway'),
+                        'L' => __('Live-Chanuka', 'wc_epic_payment_gateway'),
+						'LD' => __('Live-Dilanka', 'wc_epic_payment_gateway')
                     ),
                     'description' => __('Mode: test or live', 'wc_epic_payment_gateway'),
                     'desc_tip' => true,
@@ -327,21 +328,21 @@ function init_wc_myepic_payment_gateway()
                     'desc_tip' => false
                 ),
                 'testing' => array(
-                    'title' => __('Gateway Testing', 'wc_redsys_payment_gateway'),
+                    'title' => __('Gateway Testing', 'wc_epic_payment_gateway'),
                     'type' => 'title',
                     'description' => ''
                 ),
                 'debug' => array(
-                    'title' => __('Debug Log', 'wc_redsys_payment_gateway'),
+                    'title' => __('Debug Log', 'wc_epic_payment_gateway'),
                     'type' => 'checkbox',
-                    'label' => __('Enable logging', 'wc_redsys_payment_gateway'),
-                    'description' => sprintf(__('Log Epic events, inside %s', 'wc_redsys_payment_gateway'), wc_get_log_file_path('epic-ipg')),
+                    'label' => __('Enable logging', 'wc_epic_payment_gateway'),
+                    'description' => sprintf(__('Log Epic events, inside %s', 'wc_epic_payment_gateway'), wc_get_log_file_path('epic-ipg')),
                     'default' => 'no'
                 )
 //                    'skip_checkout_form' => array(
-//                        'title' => __( 'Skip checkout form', 'wc_redsys_payment_gateway' ),
+//                        'title' => __( 'Skip checkout form', 'wc_epic_payment_gateway' ),
 //                        'type' => 'checkbox',
-//                        'description' => __( 'Skip the last form of the checkout process and redirect into the payment gateway (requires Javascript).', 'wc_redsys_payment_gateway' ),
+//                        'description' => __( 'Skip the last form of the checkout process and redirect into the payment gateway (requires Javascript).', 'wc_epic_payment_gateway' ),
 //                        'default' => 'yes'
 //                    ),
             );
@@ -411,8 +412,16 @@ function init_wc_myepic_payment_gateway()
 //            var_dump("Byte Signed Data --> " . $byteSignedData);
 
             //================= Certificate certify process end ======================
+            // var_dump("Byte Signed Data --> " . $order);
+            // var_dump($this->get_return_url($order));
+            // var_dump($order->get_cancel_order_url());
+            // var_dump($order->get_cancel_order_url_raw());
+            // var_dump($order->get_checkout_payment_url());
 
+            // var_dump($this->process_payment( $order_id ));
+            // var_dump((array)stripslashes_deep($_POST));
 
+            echo $order;
             $epic_args = array(
 
                 'terminalId' => $this->terminalId,
@@ -438,7 +447,17 @@ function init_wc_myepic_payment_gateway()
                 // can get url select
                 'url' => "http://localhost:7001/EPIC_IPG/IPGMerchantAddOnServlet",
                 //card type
-                'radio' => $this->cardtype
+                'radio' => $this->cardtype,
+
+                //new params
+                //success url
+                'cmsSuccessUrl' => $this->get_return_url($order),
+                //fail url
+                'cmsFailUrl' => $order->get_checkout_payment_url()
+                // 'cancel_order_url' => $order->get_cancel_order_url(),
+                // 'cancel_order_url_raw' => $order->get_cancel_order_url_raw(),
+                
+                // 'process_payment' => $this->process_payment( $order_id )
 
 
             );
@@ -463,13 +482,16 @@ function init_wc_myepic_payment_gateway()
 
             switch ($this->mode) {
                 case 'T' :
-                    $epic_addr = 'http://192.168.60.73:7001/EPIC_IPG/IPGMerchantAddOnServlet';
+                    $epic_addr = 'http://192.168.1.24:7301/EPIC_IPG/IPGMerchantAddOnServlet';
                     break;
                 case 'L':
-                    $epic_addr = 'http://192.168.60.73:7001/EPIC_IPG/IPGMerchantAddOnServlet';
+                    $epic_addr = 'http://192.168.130.13:7001/EPIC_IPG/IPGMerchantAddOnServlet';
                     break;
                 case 'D':
                     $epic_addr = 'http://localhost:7001/EPIC_IPG/IPGMerchantAddOnServlet';
+                    break;
+				case 'LD':
+                    $epic_addr = 'http://192.168.1.99:7001/EPIC_IPG/IPGMerchantAddOnServlet';
                     break;
                 default:
                     $epic_addr = 'http://localhost:7001/EPIC_IPG/IPGMerchantAddOnServlet';
@@ -496,7 +518,8 @@ function init_wc_myepic_payment_gateway()
             }
 
 //                if ( empty( $this->settings['skip_checkout_form'] ) || $this->settings['skip_checkout_form'] != 'no' ) {
-            if ($this->mode == "T" || $this->mode == "D" ) {
+            if ($this->mode == "T" || $this->mode == "L" || $this->mode == "D" || $this->mode == "LD" ) {
+            // if (false) {
 
                 if (version_compare(WOOCOMMERCE_VERSION, '2.2.3', '<')) {
                     $loader_html = '<img src="' . esc_url(apply_filters('woocommerce_ajax_loader_url', $woocommerce->plugin_url() . '/assets/images/ajax-loader.gif')) . '" alt="' . __('Redirecting&hellip;', 'wc_epic_payment_gateway') . '" style="float: left; margin-right: 10px;" />';
@@ -569,6 +592,15 @@ function init_wc_myepic_payment_gateway()
                 $redirect_url = $order->get_checkout_payment_url(true);
             }
 
+            // $order->update_status( 'failed' );
+
+            // return array(
+			// 	'result'   => 'fail',
+			// 	'redirect' => $redirect_url,
+            // );
+            
+
+
             return array(
                 'result' => 'success',
                 'redirect' => $redirect_url
@@ -598,15 +630,15 @@ function init_wc_myepic_payment_gateway()
         function check_notification()
         {
 
-            var_dump("sss");
             global $woocommerce;
+
 
             if ('yes' == $this->debug) {
                 $this->log->add('epic', 'Checking notification is valid...');
             }
 
             if (!empty($_REQUEST)) {
-                if (!empty($_POST) && array_key_exists('ds_signature', array_change_key_case($_POST, CASE_LOWER))) {
+                if (!empty($_POST) && array_key_exists('signature', array_change_key_case($_POST, CASE_LOWER))) {
 
                     @ob_clean();
 
@@ -618,7 +650,7 @@ function init_wc_myepic_payment_gateway()
                         $this->log->add('epic', 'Received data: ' . print_r($received_values, true));
                     }
 
-                    $received_signature = $_POST['Ds_Signature'];
+                    $received_signature = $_POST['signature'];
                     $version = $_POST['Ds_SignatureVersion'];
                     $encoded_data = $_POST['Ds_MerchantParameters'];
 
@@ -771,6 +803,191 @@ function init_wc_myepic_payment_gateway()
                 }
             }
         }
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// function check_notification()
+//         {
+
+//             global $woocommerce;
+
+
+//             if ('yes' == $this->debug) {
+//                 $this->log->add('epic', 'Checking notification is valid...');
+//             }
+
+//             if (!empty($_REQUEST)) {
+//                 if (!empty($_POST) && array_key_exists('signature', array_change_key_case($_POST, CASE_LOWER))) {
+
+//                     @ob_clean();
+
+//                     // Get received values from post data
+//                     $received_values = (array)stripslashes_deep($_POST);
+//                     var_dump($received_values);
+
+//                     if ('yes' == $this->debug) {
+//                         $this->log->add('epic', 'Received data: ' . print_r($received_values, true));
+//                     }
+
+//                     $received_signature = $_POST['signature'];
+//                     $version = $_POST['Ds_SignatureVersion'];
+//                     $encoded_data = $_POST['Ds_MerchantParameters'];
+
+//                     $data = base64_decode(strtr($encoded_data, '-_', '+/'));
+//                     $data = json_decode($data, true);
+
+//                     try {
+//                         $calculated_signature = $this->generateResponseSignature($this->secret_key, $encoded_data);
+//                     } catch (Exception $e) {
+//                         if ('yes' == $this->debug) {
+//                             $this->log->add('epic', 'Error while validating notification from Epic: ' . $e->getMessage());
+//                         }
+//                         wp_die();
+//                     }
+
+//                     $received_amount = $data['Ds_Amount'];
+//                     $order_id = substr($data['Ds_Order'], 0, 8);
+//                     $fuc = $data['Ds_MerchantCode'];
+//                     $currency = $data['Ds_Currency'];
+//                     $response = $data['Ds_Response'];
+//                     $auth_code = $data['Ds_AuthorisationCode'];
+
+//                     // Reverse order code customization (@enbata)
+//                     $order_id = apply_filters('wc_myepic_merchant_order_decode', $order_id, $data['Ds_Order']);
+
+//                     // check to see if the response is valid
+//                     if ($received_signature === $calculated_signature
+//                         && $this->checkResponse($response)
+//                         && $this->checkAmount($received_amount)
+//                         && $this->checkOrderId($order_id)
+//                         && $this->checkCurrency($currency)
+//                         && $this->checkFuc($fuc)
+//                     ) {
+//                         if ('yes' == $this->debug) {
+//                             $this->log->add('epic', 'Received valid notification from Epic. Payment status: ' . $response);
+//                         }
+
+//                         $order = new WC_Order($order_id);
+
+//                         // We are here so lets check status and do actions
+//                         $response = (int)$response;
+//                         if ($response < 101 && $this->checkAuthorisationCode($auth_code)) {    // Completed
+
+//                             // Check order not already completed
+//                             if ($order->status == 'completed') {
+//                                 if ('yes' == $this->debug) {
+//                                     $this->log->add('epic', 'Aborting, Order #' . $order_id . ' is already complete.');
+//                                 }
+//                                 wp_die();
+//                             }
+
+
+//                             // Validate Amount
+//                             $order_amount = $order->get_total();
+//                             if ($this->currency_id == 978) {
+//                                 $received_amount = $received_amount / 100;    // For Euros, epic assumes that last two digits are decimals
+//                             }
+
+//                             if ($order_amount != $received_amount) {
+
+//                                 if ($this->debug == 'yes') {
+//                                     $this->log->add('epic', "Payment error: Order's ammount {$order_amount} do not match received amount {$received_amount}");
+//                                 }
+
+//                                 // Put this order on-hold for manual checking
+//                                 $order->update_status('on-hold', sprintf(__('Validation error: Epic amounts do not match (amount %s).', 'wc_epic_payment_gateway'), $received_amount));
+
+//                                 wp_die();
+//                             }
+
+//                             // Store payment Details
+//                             if (!empty($data['Ds_Date']))
+//                                 update_post_meta($order_id, 'Payment date', $data['Ds_Date']);
+//                             if (!empty($data['Ds_Hour']))
+//                                 update_post_meta($order_id, 'Payment hour', $data['Ds_Hour']);
+//                             if (!empty($data['Ds_AuthorisationCode']))
+//                                 update_post_meta($order_id, 'Authorisation code', $data['Ds_AuthorisationCode']);
+//                             if (!empty($data['Ds_Card_Country']))
+//                                 update_post_meta($order_id, 'Card country', $data['Ds_Card_Country']);
+//                             if (!empty($data['last_name']))
+//                                 update_post_meta($order_id, 'Consumer language', $data['Ds_ConsumerLanguage']);
+//                             if (!empty($data['Ds_Card_Type']))
+//                                 update_post_meta($order_id, 'Card type', $data['Ds_Card_Type'] == 'C' ? 'Credit' : 'Debit');
+
+//                             // Payment completed
+//                             $order->add_order_note(__('Epic payment completed', 'wc_epic_payment_gateway'));
+//                             $order->payment_complete();
+
+//                             // Set order as completed if user did set up it
+//                             if ('Y' == $this->set_completed) {
+//                                 $order->update_status('completed');
+//                             }
+
+//                             if ('yes' == $this->debug) {
+//                                 $this->log->add('epic', 'Payment complete.');
+//                             }
+//                         } else if ($response >= 101 && $response <= 202) {
+//                             // Order failed
+//                             $message = sprintf(__('Payment error: code: %s.', 'wc_epic_payment_gateway'), $response);
+//                             $order->update_status('failed', $message);
+//                             if ($this->debug == 'yes')
+//                                 $this->log->add('epic', "{$message}");
+//                         } else if ($response == 900) {
+//                             // Transacción autorizada para devoluciones y confirmaciones
+//                             /*
+//                             // Only handle full refunds, not partial
+//                             if ($order->get_total() == ($posted['mc_gross']*-1)) {
+
+//                                 // Mark order as refunded
+//                                 $order->update_status('refunded', sprintf(__('Payment %s via IPN.', 'wc_epic_payment_gateway'), strtolower($posted['payment_status']) ) );
+
+//                                 $mailer = $woocommerce->mailer();
+
+//                                 $mailer->wrap_message(
+//                                         __('Order refunded/reversed', 'wc_epic_payment_gateway'),
+//                                         sprintf(__('Order %s has been marked as refunded - Epic reason code: %s', 'wc_epic_payment_gateway'), $order->get_order_number(), $posted['reason_code'] )
+//                                 );
+
+//                                 $mailer->send( get_option('woocommerce_new_order_email_recipient'), sprintf( __('Payment for order %s refunded/reversed', 'wc_epic_payment_gateway'), $order->get_order_number() ), $message );
+
+//                                 }
+//                                 */
+//                         } else if ($response == 912 || $response == 9912) {
+//                             // Order failed
+//                             $message = sprintf(__('Payment error: bank unavailable.', 'wc_epic_payment_gateway'));
+//                             $order->update_status('failed', $message);
+//                             if ($this->debug == 'yes')
+//                                 $this->log->add('epic', "{$message}");
+//                         } else {
+//                             // Order failed
+//                             $message = sprintf(__('Payment error: code: %s.', 'wc_epic_payment_gateway'), $response);
+//                             $order->update_status('failed', $message);
+//                             if ($this->debug == 'yes')
+//                                 $this->log->add('epic', "{$message}");
+//                         }
+//                     } else {
+//                         if ('yes' == $this->debug) {
+//                             $this->log->add('epic', "Received invalid notification from Epic.\nSignature: {$received_signature}\nVersion: {$version}\nData: " . print_r($data, true));
+//                         }
+
+//                         //$order->update_status('cancelled', __( 'Awaiting REDSYS payment', 'wc_epic_payment_gateway' ));
+
+//                         if (version_compare(WOOCOMMERCE_VERSION, '2.0', '<')) {
+//                             $woocommerce->cart->empty_cart();
+//                         } else {
+//                             WC()->cart->empty_cart();
+//                         }
+//                     }
+
+//                 }
+//             }
+//         }
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
 
         /**
          * Converts array to JSON and encodes string to base64
